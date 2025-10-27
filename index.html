@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>BPM Detector</title>
+    <link rel="stylesheet" href="./index.css" />
+    <style></style>
+  </head>
+  <body>
+    <header>
+      <h1>🎵 BPM Detector</h1>
+      <p class="lead">Drop audio or video files (select multiple)</p>
+    </header>
+
+    <main>
+      <section class="card">
+        <div class="row">
+          <label class="btn">
+            <input
+              id="fileInput"
+              multiple
+              type="file"
+              accept="audio/*, video/*"
+            />
+            Choose File(s)
+          </label>
+          <button class="btn" id="micBtn">🎙 Capture</button>
+          <button class="btn" id="analyzeBtn" disabled>Analyze BPM</button>
+          <button class="btn" id="demoBtn">Demo</button>
+          <button class="btn" id="exportCsvBtn" disabled>
+            ⬇ Export Tempo CSV
+          </button>
+          <button class="btn" id="downloadResultsBtn" disabled>
+            ⬇ Download Results CSV
+          </button>
+          <button class="btn" id="tapBtn">👆 Tap Tempo</button>
+          <button class="btn" id="tapResetBtn">Reset</button>
+          <span class="status" id="status">No file loaded.</span>
+        </div>
+
+        <div class="controls">
+          <div class="ctrl">
+            <label for="minBPM">Min BPM</label>
+            <input id="minBPM" type="number" value="60" min="30" max="300" />
+          </div>
+          <div class="ctrl">
+            <label for="maxBPM">Max BPM</label>
+            <input id="maxBPM" type="number" value="180" min="40" max="400" />
+          </div>
+          <div class="ctrl">
+            <label>Per-window analysis</label>
+            <div>
+              <input id="perWindow" type="checkbox" checked />
+              <span>Enabled</span>
+            </div>
+          </div>
+          <div class="ctrl">
+            <label for="winSecs">Window (s)</label>
+            <input
+              id="winSecs"
+              type="number"
+              step="1"
+              value="8"
+              min="2"
+              max="60"
+            />
+          </div>
+          <div class="ctrl">
+            <label for="hopSecs">Hop (s)</label>
+            <input
+              id="hopSecs"
+              type="number"
+              step="1"
+              value="2"
+              min="1"
+              max="30"
+            />
+          </div>
+          <div class="ctrl">
+            <label>Frame/Hop (samples)</label>
+            <div id="frameInfo">1024 / 512</div>
+          </div>
+        </div>
+
+        <div class="metrics" id="metrics" hidden>
+          <div class="metric">
+            <div class="label">Estimated BPM</div>
+            <div class="value" id="bpmValue">—</div>
+            <div class="sub" id="bpmNote"></div>
+          </div>
+          <div class="metric">
+            <div class="label">Confidence</div>
+            <div class="value" id="confValue">—</div>
+            <div class="sub">Peak vs. runners-up</div>
+          </div>
+          <div class="metric">
+            <div class="label">Range</div>
+            <div class="value" id="rangeValue">60–180</div>
+            <div class="sub">BPM search band</div>
+          </div>
+          <div class="metric">
+            <div class="label">Tap Tempo</div>
+            <div class="value" id="tapValue">—</div>
+            <div class="sub" id="tapCount">0 taps</div>
+          </div>
+          <div class="metric">
+            <div class="label">Curve Points</div>
+            <div class="value" id="curvePts">0</div>
+            <div class="sub">for CSV / plot</div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ===== RESULTS TABLE (A1) ===== -->
+      <section class="card" id="resultsCard">
+        <div class="results-header">
+          <div style="display: flex; flex-direction: column; gap: 6px">
+            <div style="font-weight: 700">Results</div>
+            <div class="small" id="progressText">No analysis yet.</div>
+          </div>
+          <div style="width: 320px">
+            <div class="progress" aria-hidden="true">
+              <div class="fill" id="progressFill"></div>
+            </div>
+          </div>
+        </div>
+
+        <table class="results" id="resultsTable" aria-live="polite">
+          <thead>
+            <tr>
+              <th>File</th>
+              <th>Duration (s)</th>
+              <th>BPM</th>
+              <th>Confidence</th>
+            </tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+      </section>
+      <!-- ================================ -->
+
+      <section class="card">
+        <h3 style="margin-top: 0">Wave Form</h3>
+        <canvas id="envCanvas" width="1400" height="200"></canvas>
+        <p class="small">
+          Energy-onset curve (normalized). Peaks indicate likely
+          beats/transients.
+        </p>
+      </section>
+
+      <section class="card">
+        <h3 style="margin-top: 0">Autocorrelation (Tempo Candidates)</h3>
+        <canvas id="acfCanvas" width="1400" height="200"></canvas>
+        <p class="small">
+          The tallest peak within the BPM range corresponds to the estimated
+          tempo. Harmonic peaks (×2, ÷2) are common.
+        </p>
+      </section>
+
+      <section class="card">
+        <h3 style="margin-top: 0">Tempo Curve (Per-Window)</h3>
+        <canvas id="tempoCanvas" width="1400" height="200"></canvas>
+        <p class="small">
+          BPM over time (mid-point of each window). Export via “Export Tempo
+          CSV”.
+        </p>
+      </section>
+    </main>
+
+    <footer>Built for quick BPM analysis • multiple files supported</footer>
+
+    <script src="./index.js"></script>
+  </body>
+</html>
